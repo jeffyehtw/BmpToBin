@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdint.h>
 
 typedef char BYTE;
 
@@ -46,10 +47,9 @@ void rgb888_to_argb8888(BYTE *rgb, BYTE* argb, struct bmp_header *header) {
     uint32_t pixel_cnt = header->width * header->height;
 
     for (int i = 0; i < pixel_cnt; i++) {
-        *((uint32_t *)argb + i) |= (uint32_t)*(rgb + i * 3) << 16;
-        *((uint32_t *)argb + i) |= (uint32_t)*(rgb + i * 3 + 1) << 8;
-        *((uint32_t *)argb + i) |= (uint32_t)*(rgb + i * 3 + 2);
-        *((uint32_t *)argb + i) = htonl(*((uint32_t *)argb + i));
+        *(argb + 4 * i + 1) = *(rgb + i * 3);
+        *(argb + 4 * i + 2) = *(rgb + i * 3 + 1);
+        *(argb + 4 * i + 3) = *(rgb + i * 3 + 2);
     }
 }
 
