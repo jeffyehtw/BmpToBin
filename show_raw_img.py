@@ -31,12 +31,12 @@ def main():
 
     if args.format == 'rgb':
         data = data[:pixel_cnt * 3]
-        data = numpy.reshape(data, (args.width, args.height, 3))
+        data = numpy.reshape(data, (args.height, args.width, 3))
     elif args.format == 'argb':
         data = data[:pixel_cnt * 4]
         a_index = [x * 4 for x in range(0, pixel_cnt)]
         data = numpy.delete(data, a_index)
-        data = numpy.reshape(data, (args.width, args.height, 3))
+        data = numpy.reshape(data, (args.height, args.width, 3))
     else:
         exit()
 
