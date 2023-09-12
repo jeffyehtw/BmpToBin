@@ -3,6 +3,7 @@
 #include <string.h>
 #include <stdint.h>
 #include <getopt.h>
+#include <stdbool.h>
 
 typedef uint8_t BYTE;
 
@@ -11,6 +12,7 @@ struct argument {
     char *dst;
     uint32_t width;
     uint32_t height;
+    bool separated;
 };
 
 float rgb2y(float r, float g, float b) {
@@ -38,13 +40,16 @@ int main(int argc, char *argv[]) {
     char ch;
 
     memset(&args, 0, sizeof(struct argument));
-    while ((ch = getopt(argc, argv, "w:h:")) != EOF) {
+    while ((ch = getopt(argc, argv, "w:h:s")) != EOF) {
         switch (ch) {
             case 'w':
                 args.width = atoi(optarg);
                 break;
             case 'h':
                 args.height = atoi(optarg);
+                break;
+            case 's':
+                args.separated = 1;
                 break;
             default:
                 printf("Unknown option: '%s'\n", optarg);
@@ -136,11 +141,35 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    if ((fptr = fopen(args.dst, "wb")) == NULL) {
-        return -1;
+    if (args.separated) {
+        char *luma_ext = ".y";
+        char *chroma_ext = ".c";
+        uint32_t len = strlen(args.dst) + 2 + 1;
+        char *name = malloc(len * sizeof(char));
+
+        memset(name, 0, len * sizeof(char));
+        strcpy(name, args.dst);
+
+        strcpy(name + strlen(args.dst), luma_ext);
+        if ((fptr = fopen(name, "wb")) == NULL) {
+            return -1;
+        }
+        fwrite(luma, args.width * args.height, sizeof(BYTE), fptr);
+        fclose(fptr);
+
+        strcpy(name + strlen(args.dst), chroma_ext);
+        if ((fptr = fopen(name, "wb")) == NULL) {
+            return -1;
+        }
+        fwrite(chroma, (args.width * args.height) >> 1, sizeof(BYTE), fptr);
+        fclose(fptr);
+    } else {
+        if ((fptr = fopen(args.dst, "wb")) == NULL) {
+            return -1;
+        }
+        fwrite(nv12, size, sizeof(BYTE), fptr);
+        fclose(fptr);
     }
-    fwrite(nv12, size, sizeof(BYTE), fptr);
-    fclose(fptr);
 
 exit:
     free(buffer);
